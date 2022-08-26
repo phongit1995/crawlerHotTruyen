@@ -60,11 +60,12 @@ const getCookieCloudflareNotChallenge=async(url,argent)=>{
     })
     const cookies = await page.cookies();
     const userAgent = await page.evaluate(() => navigator.userAgent );
-    console.log('userAgent',userAgent);
     let result ="";
     for(let cookie of cookies){
         result+= `${cookie.name}=${cookie.value};` ;
     }
+    let pages = await browser.pages(); 
+    await Promise.all(pages.map(page =>page.close()));
     await browser.close();
     cacheMemory.put(KEY_CACHE,result,1000*60*30);
     return {
@@ -73,7 +74,34 @@ const getCookieCloudflareNotChallenge=async(url,argent)=>{
     };
 
 }
+const getDataOnUrl =async (url)=>{
+    browser = await puppeteer.launch({
+        args : ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: true
+    });
+    const page = await browser.newPage();
+    await page.authenticate();
+    await page.setRequestInterception(true);
+    page.on('request', request => {
+        if (['image', 'stylesheet', 'font', 'script'].indexOf(request.resourceType()) !== -1) {
+            request.abort();
+        } else {
+            request.continue();
+        }
+    });
+    await page.goto(url,{
+        timeout:10000,
+        waitUntil: 'networkidle2'
+    });
+    const content = await page.content();
+    const pages = await browser.pages();
+    await Promise.all(pages.map(page =>page.close()));
+    await browser.close();
+    return content ;
+
+}
 module.exports={
     getCookieCloudflare,
-    getCookieCloudflareNotChallenge
+    getCookieCloudflareNotChallenge,
+    getDataOnUrl
 }
