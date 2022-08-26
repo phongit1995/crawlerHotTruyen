@@ -16,7 +16,7 @@ const getCookieCloudflare=async(url,argent)=>{
     }
     browser = await puppeteer.launch({
         args : ['--no-sandbox', '--disable-setuid-sandbox'],
-        headless: false
+        //headless: false
     });
     const page = await browser.newPage();
     await page.setUserAgent(USER_ARGENT);
