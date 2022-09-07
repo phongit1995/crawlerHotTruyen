@@ -14,7 +14,7 @@ const getCookieCloudflare=async(url,argent)=>{
     if(dataCache){
         return dataCache;
     }
-    browser = await puppeteer.launch({
+    let browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--single-process"],
       //headless: false
     });
@@ -35,8 +35,6 @@ const getCookieCloudflare=async(url,argent)=>{
     for(let cookie of cookies){
         result+= `${cookie.name}=${cookie.value};` ;
     }
-    const pages = await browser.pages();
-    await Promise.all(pages.map(page =>page.close()));
     await browser.close();
     cacheMemory.put(KEY_CACHE,result,1000*60*30);
     return result;
